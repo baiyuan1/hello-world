@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.4.16 <0.9.0;
+/*
+Maps are created with the syntax mapping(keyType => valueType).
+The keyType can be any built-in value type, bytes, string, or any contract.
+valueType can be any type including another mapping or an array.
+Mappings are not iterable.
+mapping 不自带交互手段（如获得长度，使用loop），需要额外架设。
+
+{"A","B","C'}
+{"A": ture, "B": ture, "C":ture}
+使用mapping可以快速，确认基于等同的属性关系。
+*/
+contract IterableMapping {
+    mapping(address => uint) public balances;//一个地址到序号的映射
+    mapping(address => bool) public inserted;//一个地址到判定值的映射
+    address[] public keys;//一个数组，记录所有的地址
+
+    function set (address _key, uint _val) external {  
+        balances [_key] = _val;   //以key为balances映射的发起数组(KEY)，val是输入值，即建立该映射的外延，此处要求输入一个地址，和一个数字，建立第一个具体的映射对
+
+        if (!inserted[_key]){
+            inserted [_key] = true;
+            keys.push(_key);
+        }//如果输入的address值不存在对应的映射布尔值，则将这个地址对应的布尔值设定为true，并且在数组key末端加入一个新地址，也就是输入的这个地址
+    }
+    function getSize() external view returns (uint){
+        return keys.length;
+    }//获得数组key的规模，
+    function first() external view returns (uint){
+        return balances[keys[0]];
+    }//直接获得数组key中第一个地址对应的映射值
+     function last() external view returns (uint){
+        return balances[keys[keys.length-1]];
+    }//直接获得数组key中最后一个地址对应的映射值
+
+    function get(uint _i) external view returns (uint){
+        return balances[keys[_i]];
+    }//根据输入获得key数组中某一个地址对应的映射值
+    }
