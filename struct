@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.4.16 <0.9.0;
+
+contract strcts{
+    struct Car {
+        string model;
+        uint year;
+        address owner;
+    }//宣称一个结构（有内部构造）
+    Car public car;//宣称一个有着Car这个有着特殊的内部构造的状态变量
+    Car[] public cars;//宣称Car中的数组为cars
+    mapping (address => Car[]) public carsByOwner;
+   //建立一个由地址到 Car【】的映射，命名为carsByOwner
+    function examples() external {
+        Car memory toyota = Car ("Toyota", 1990, msg.sender);
+        Car memory lambo = Car({model:"lamboghini", year: 1980, owner: msg.sender});//()里面放条件，{}里面放关系
+        Car memory tesla;
+        tesla.model = "tesla";
+        tesla.year = 2010;
+        tesla.owner = msg.sender;//几种初始化struct的方法
+         cars.push(toyota);
+         cars.push(lambo);
+         cars.push(tesla);
+        
+        cars.push(Car("Ferrari",2020,msg.sender));
+        Car storage _car = cars[0];
+        _car.year = 1999;
+        delete _car.owner;
+        delete cars[1];
+    }
+    function list () public view returns (Car[]memory){
+       return cars;
+    }
+}
+ 
