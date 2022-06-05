@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.4.16 <0.9.0;
+//mapping
+// how to declare a mapping simple and nested
+// set, get delete
+contract Mapping{
+    mapping(address => uint) public balances;
+    //宣称一个由address到uint的mapping，名为balances
+    mapping(address => mapping(address=>bool)) public isFriend;
+    //宣称一个由address到另外一个mapping的mapping，isfriend
+
+    function examples() external{
+        balances[msg.sender]=123;
+        //mapping的调用方法，[]内部是映射发起项
+        uint bal = balances[msg.sender];
+        //mapping可以映射多个值，宣称一个状态变量bal，让它等于balances[msg.sender];
+        uint bal2 = balances [address(1)];//0
+
+        balances [msg.sender] += 456;//579
+        delete balances[msg.sender];//0
+        isFriend[msg.sender][address(this)] = true;
+            }
+}
