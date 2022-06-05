@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+/*
+Contract can call other contracts in 2 ways.
+The easiest way to is to just call it, like A.foo(x, y, z).
+Another way to call other contracts is to use the low-level call.
+This method is not recommended.
+*/
+
+contract CallTestContract {
+    function setX(TestContract _test, uint _x) external {
+        _test.setX(_x);
+    }//将TestContract 当作一个类来用. _test,是一个输入值的名称，事实上Testcontract的
+    //_test.setX(_x)这是一个固定用法，address.function()
+    function getX(address _test) external view returns (uint) {
+        return TestContract (_test).getX();
+        // return x;
+    }
+
+    function setXandSendEther(address _test, uint _x) external payable {
+        TestContract(_test).setXandRecieveEther{value: msg.value}(_x);
+    }
+
+    function getXandValue(TestContract _test) external view returns (uint, uint) {
+        (uint x, uint value) = _test.getXandValue();
+        return (x, value);
+    }//(uint, uint) 是一个array。
+}
+
+
+contract TestContract {
+    uint public x;
+    uint public value =123;
+
+    function setX (uint _x) external {
+        x = _x;
+    }
+
+    function getX() external view returns (uint) {
+        return x;
+    }
+
+    function setXandRecieveEther(uint _x) external payable {
+        x =_x;
+        value = msg.value;
+    }
+
+    function getXandValue ()external view returns (uint, uint) {
+        return (x, value);
+    }
+}
