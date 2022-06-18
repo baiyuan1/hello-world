@@ -1,0 +1,128 @@
+/**
+ *Submitted for verification at Etherscan.io on 2017-07-19
+*/
+
+pragma solidity ^0.4.8;
+contract CryptoPunksMarket {
+
+    // You can use this hash to verify the image file containing all the punks
+    string public imageHash = "ac39af4793119ee46bbff351d8cb6b5f23da60222126add4268e261199a2921b";
+
+    address owner;
+
+    string public standard = 'CryptoPunks';
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
+
+    uint public nextPunkIndexToAssign = 0;
+
+    bool public allPunksAssigned = false;
+    uint public punksRemainingToAssign = 0;
+
+    //mapping (address => uint) public addressToPunkIndex;
+    mapping (uint => address) public punkIndexToAddress;
+
+    /* This creates an array with all balances */
+    mapping (address => uint256) public balanceOf;
+
+    struct Offer {
+        bool isForSale;
+        uint punkIndex;
+        address seller;
+        uint minValue;          // in ether
+        address onlySellTo;     // specify to sell only to a specific person
+    }
+
+    struct Bid {
+        bool hasBid;
+        uint punkIndex;
+        address bidder;
+        uint value;
+    }
+
+    // A record of punks that are offered for sale at a specific minimum value, and perhaps to a specific person
+    mapping (uint => Offer) public punksOfferedForSale;
+
+    // A record of the highest punk bid
+    mapping (uint => Bid) public punkBids;
+
+    mapping (address => uint) public pendingWithdrawals;
+
+    event Assign(address indexed to, uint256 punkIndex);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event PunkTransfer(address indexed from, address indexed to, uint256 punkIndex);
+    event PunkOffered(uint indexed punkIndex, uint minValue, address indexed toAddress);
+    // event PunkBidEntered(uint indexed punkIndex, uint value, address indexed fromAddress);
+    // event PunkBidWithdrawn(uint indexed punkIndex, uint value, address indexed fromAddress);
+    // event PunkBought(uint indexed punkIndex, uint value, address indexed fromAddress, address indexed toAddress);
+    // event PunkNoLongerForSale(uint indexed punkIndex);
+
+    /* Initializes contract with initial supply tokens to the creator of the contract */
+    function CryptoPunksMarket() payable {
+        //        balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
+        owner = msg.sender;
+        totalSupply = 10000;                        // Update total supply
+        punksRemainingToAssign = totalSupply;   
+        name = "CRYPTOPUNKS";                                   // Set the name for display purposes
+        symbol = "Ͼ";                               // Set the symbol for display purposes
+        decimals = 0;                                       // Amount of decimals for display purposes
+    }
+
+    function setInitialOwner(address to, uint punkIndex) { //to是被赋予nft账户的地址，PunkIndex是编号
+        if (msg.sender != owner) throw;//如果调用者不是拥有者，throw
+        if (allPunksAssigned) throw;//如果所有的punk都assigned,throw，这说明set要在assign之前完成
+        if (punkIndex >= 10000) throw;//如果punkIndex，也就是释放的punk总数大于10000，throw
+        if (punkIndexToAddress[punkIndex] != to) { //如果某一编号的地址与to地址不同，且如果某一编号地址不是0
+            if (punkIndexToAddress[punkIndex] != 0x0) {//
+                balanceOf[punkIndexToAddress[punkIndex]]--; //则，对应编号的账户中余额减少1，一次只能给一个
+            } else {
+                punksRemainingToAssign--; //否则（先见67），还没有ssigne的值减去1
+            }
+            punkIndexToAddress[punkIndex] = to;//将一个punkIndexToAddres实体化为mint地址
+            balanceOf[to]++;//增加mint地址的余额
+            Assign(to, punkIndex);//记录事件，mint地址，以及对应的punk编号，
+        }
+    }
+
+    // function setInitialOwners(address[] addresses, uint[] indices) {//宣称两个数组
+    //     if (msg.sender != owner) throw;
+    //     uint n = addresses.length;//宣称addresses的长度
+    //     for (uint i = 0; i < n; i++) {//一个loop，
+    //         setInitialOwner(addresses[i], indices[i]);
+    //     }
+    // }
+
+    function allInitialOwnersAssigned() {
+        if (msg.sender != owner) throw;
+        allPunksAssigned = true;//这个函数应该对接一个ssign的外部链接，这个函数相当于终止mint，只有它启动，getpunk和transifer才有用
+    }
+
+    function getPunk(uint punkIndex) {//
+        if (!allPunksAssigned) throw;//如果所有的punkassigne没有完成，throw ，
+        if (punksRemainingToAssign == 0) throw;//如果剩余的assign为零则，throw
+        if (punkIndexToAddress[punkIndex] != 0x0) throw; 
+        if (punkIndex >= 10000) throw;
+        punkIndexToAddress[punkIndex] = msg.sender;//这个是mint
+        balanceOf[msg.sender]++;//增加一个额度
+        punksRemainingToAssign--;//减少一个保留的分配值
+        Assign(msg.sender, punkIndex);//分配（msg.sender, 编号）
+    }
+
+    // Transfer ownership of a punk to another user without requiring payment
+    function transferPunk(address to, uint punkIndex) payable {
+        if (!allPunksAssigned) throw;
+        if (punkIndexToAddress[punkIndex] != msg.sender) throw;
+        if (punkIndex >= 10000) throw;
+       
+        punkIndexToAddress[punkIndex] = to; 
+        balanceOf[msg.sender]--;
+        balanceOf[to]++;
+        Transfer(msg.sender, to, 1);
+        PunkTransfer(msg.sender, to, punkIndex);
+        // Check for the case where there is a bid from the new owner and refund it.
+        // Any other bid can stay in place.
+       
+    }
+}
